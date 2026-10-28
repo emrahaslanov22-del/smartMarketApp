@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Alert, FlatList, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import Cart from "../components/Market/Cart";
 
 //#region  interface
@@ -190,128 +190,156 @@ export default function TabLayout() {
     );
   };
 
+  const { height, width } = useWindowDimensions();
+  const isLandscape = width > height;
+
   return (
-    <View style={[styles.container, { paddingTop: StatusBar.currentHeight }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: StatusBar.currentHeight },
+      ]}
+    >
       <Cart
         productCount={cart.length}
         totalPrice={totalPrice}
       />
 
-      <FlatList
-        data={categoriesItem}
-        contentContainerStyle={styles.categoryList}
-        keyExtractor={(category) => category.id.toString()}
-        renderItem={({ item: category }) => (
-          <View
-            style={[
-              styles.categoryCard,
-              selectedCategory?.id === category.id &&
-              styles.selectedCategory,
-            ]}
-          >
-            <Ionicons
-              size={34}
-              color="red"
-              name={category.icon as any}
-              onPress={() =>
-                setSelectedCategory(category)
-              }
-            />
-
-            <Text
-              style={styles.categoryName}
-              onPress={() =>
-                setSelectedCategory(category)
-              }
+      <View
+        style={[
+          styles.content,
+          { flexDirection: isLandscape ? "row" : "column" },
+        ]}
+      >
+        <FlatList
+          style={
+            isLandscape ? styles.categoryLandscape : { maxHeight: height + 1 }
+          }
+          data={categoriesItem}
+          contentContainerStyle={styles.categoryList}
+          keyExtractor={(category) => category.id.toString()}
+          renderItem={({ item: category }) => (
+            <View
+              style={[
+                styles.categoryCard,
+                selectedCategory?.id === category.id &&
+                styles.selectedCategory,
+              ]}
             >
-              {category.categoryName}
-            </Text>
-          </View>
-        )}
-      />
+              <Ionicons
+                size={34}
+                color="red"
+                name={category.icon as any}
+                onPress={() => setSelectedCategory(category)}
+              />
 
-      <FlatList
-        data={selectedCategory?.products ?? []}
-        contentContainerStyle={styles.productList}
-        keyExtractor={(product) => product.id.toString()}
-
-        renderItem={({ item: product }) => (
-          <View style={styles.productCard}>
-            <MaterialCommunityIcons
-              name={product.icon as any}
-              size={35}
-              color="green"
-            />
-
-            <View style={styles.productInfo}>
-              <Text style={styles.productName}>
-                {product.name}
-              </Text>
-
-              <Text style={styles.productPrice}>
-                {product.price} AZN
+              <Text
+                style={styles.categoryName}
+                onPress={() => setSelectedCategory(category)}
+              >
+                {category.categoryName}
               </Text>
             </View>
+          )}
+        />
 
-            <Text onPress={() => handleDeleteProduct(product.id)}>
-              <MaterialCommunityIcons size={24} color="red" name="delete" />
-            </Text>
+        <FlatList
+          style={[
+            styles.productArea,
+            isLandscape && styles.productLandscape,
+          ]}
+          data={selectedCategory?.products ?? []}
+          numColumns={2}
+          columnWrapperStyle={styles.productRow}
+          contentContainerStyle={styles.productList}
 
-            <TouchableOpacity
-              onPress={() => handleAddToCart(product)}
-              style={styles.addButton}
-            >
-              <Text style={styles.addButtonText}>Add to cart</Text>
-            </TouchableOpacity>
+          keyExtractor={(product) => product.id.toString()}
 
+          renderItem={({ item: product }) => (
+            <View style={styles.productCard}>
+              <MaterialCommunityIcons
+                name={product.icon as any}
+                size={35}
+                color="green"
+              />
+
+              <View style={styles.productInfo}>
+                <Text style={styles.productName}>
+                  {product.name}
+                </Text>
+                <Text style={styles.productPrice}>
+                  {product.price} AZN
+                </Text>
+              </View>
+
+              <Text onPress={() => handleDeleteProduct(product.id)}>
+                <MaterialCommunityIcons
+                  size={24}
+                  color="red"
+                  name="delete"
+                />
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => handleAddToCart(product)}
+                style={styles.cartButton}
+              >
+                <Text style={styles.cartButtonText}>
+                  Add to cart
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+
+        <View
+          style={[
+            styles.inputContainer,
+            isLandscape && styles.formLandscape,
+          ]}
+        >
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Product Name</Text>
+            <TextInput
+              value={porductName}
+              placeholder="product name"
+              onChangeText={setProductName}
+              style={styles.input}
+            />
           </View>
-        )}
-      />
-      <View style={styles.inputContainer}>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>
-            Product Name
-          </Text>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Product Price</Text>
+            <TextInput
+              value={productPrice}
+              placeholder="product price"
+              onChangeText={setProductPrice}
+              keyboardType="numeric"
+              style={styles.input}
+            />
+          </View>
 
-          <TextInput
-            value={porductName}
-            placeholder="product name"
-            onChangeText={setProductName}
-            style={styles.input}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>
-            Product Price
-          </Text>
-
-          <TextInput
-            value={productPrice}
-            placeholder="product price"
-            onChangeText={setProductPrice}
-            keyboardType="numeric"
-            style={styles.input}
-          />
-        </View>
-
-        <View>
           <TouchableOpacity
             style={styles.addButton}
             onPress={handleAddProduct}
-          />
+          >
+            <Text style={styles.addButtonText}>
+              Add Product
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-
     </View>
-
   );
 }
 //#endregion
 
 //#region StyleSheet
 const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+  },
+
   container: {
     flex: 1,
     paddingHorizontal: 16,
@@ -436,6 +464,26 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 12,
     fontWeight: "600",
+  },
+  categoryLandscape: {
+    width: "23%",
+    flexGrow: 0,
+    marginRight: 12,
+  },
+  productArea: {
+    flex: 1,
+    minWidth: 0,
+  },
+  productLandscape: {
+    marginRight: 12,
+  },
+
+  productRow: {
+    justifyContent: "space-between",
+  },
+
+  formLandscape: {
+    width: "27%",
   },
 });
 //#endregion
